@@ -89,3 +89,13 @@ You can also describe the custom resource to get more details
 $ k8s describe person john-doe
 ```
 
+## Delete a CustomResourceDefinition
+
+When you delete a CustomResourceDefinition, the server will uninstall the RESTful API endpoint and delete all custom objects stored in it.
+
+```
+$ k8s delete -f person-crd.yaml
+$ k8s get persons 
+# Error from server (NotFound): Unable to list "example.com/v1, Resource=persons": the server could not find the requested resource (get persons.example.com)
+
+```
