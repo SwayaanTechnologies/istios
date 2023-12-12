@@ -1,0 +1,1 @@
+microk8s kubectl exec -it ratings-v1-5fcb7db7b7-vgvhc -c ratings -- /bin/sh

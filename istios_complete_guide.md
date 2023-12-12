@@ -607,8 +607,6 @@ client sending requests can verify public ssl certificate associated with the ga
 is known as session key encrypted with the public key within the certificate|that the server provided and this session key is temporary and will be discarded after the session.
 The gateway which is our server will then decrypt the session key using its private key. After that the session key can be used for encrypted communication between the client and the server.
 
-
-
 # Install MetalLB - A Load Balancing Solution 
 
 MetalLB is a popular open-source solution for enabling LoadBalancer services on bare-metal Kubernetes clusters and local development environments. It provides a software-based load balancer implementation. You can install MetalLB on your local Kubernetes cluster to enable LoadBalancer services.
