@@ -16,15 +16,15 @@ A service mesh enables developers to separate and manage service-to-service comm
 # Istios
 
 ![](images/istios.png)
-
+Istio is started in `May 2017` which means `sail` in Greek and Developed in `Go` Language. <br>
 Istio is an open-source service mesh platform that helps you manage and secure microservices in Kubernetes and other container orchestration platforms. <br>
 Its powerful control plane brings vital features, including:<br>
-
-- Secure service-to-service communication in a cluster with TLS encryption, strong identity-based authentication and authorization
-- Automatic load balancing for HTTP, gRPC, WebSocket, and TCP traffic
-- Fine-grained control of traffic behavior with rich routing rules, retries, failovers, and fault injection
-- A pluggable policy layer and configuration API supporting access controls, rate limits and quotas
-- Automatic metrics, logs, and traces for all traffic within a cluster, including cluster ingress and egress
+<br>
+- Secure service-to-service communication in a cluster with TLS encryption, strong identity-based authentication and authorization<br>
+- Automatic load balancing for HTTP, gRPC, WebSocket, and TCP traffic<br>
+- Fine-grained control of traffic behavior with rich routing rules, retries, failovers, and fault injection<br>
+- A pluggable policy layer and configuration API supporting access controls, rate limits and quotas<br>
+- Automatic metrics, logs, and traces for all traffic within a cluster, including cluster ingress and egress<br>
 
 Istio is designed for extensibility and can handle a diverse range of deployment needs. Istio’s control plane runs on Kubernetes, and you can add applications deployed in that cluster to your mesh, extend the mesh to other clusters, or even connect VMs or other endpoints running outside of Kubernetes.
 
@@ -326,7 +326,7 @@ $ k8s apply -f <(microk8s istioctl kube-inject -f ./samples/bookinfo/platform/ku
 
 ```bash +@Output
 $ k8s get all
-# Observation: Each pod has 2 container running, ie, istios injeted a sidecar to each pod as a proxy container automatically
+# Observation: Each pod has 2 container running, ie, istios injected a sidecar to each pod as a proxy container automatically
 $ k8s describe pod <pod-name>
 $ k8s describe pod/productpage-v1-6fcdb87d75-5xbpn 
 # Observation: Check the container section 
@@ -559,11 +559,10 @@ Some of the traffic management API resources,
 
 ## Sidecars 
 
-The sidecar container is typically an instance of the Envoy proxy, which is responsible for handling communication between services within the service mesh.
-
-By default, Istio configures every Envoy proxy to accept traffic on all the ports of its associated workload, and to reach every workload in the mesh when forwarding traffic. You can use a sidecar configuration to do the following:
-
-- Fine-tune the set of ports and protocols that an Envoy proxy accepts.
+![](images/sidecar.png) The sidecar container is typically an instance of the Envoy proxy, which is responsible for handling communication between services within the service mesh. <br>
+By default, Istio configures every Envoy proxy to accept traffic on all the ports of its associated workload, and to reach every workload in the mesh when forwarding traffic. <br><br>You can use a sidecar configuration to do the following:
+<br>
+- Fine-tune the set of ports and protocols that an Envoy proxy accepts.<br>
 - Limit the set of services that the Envoy proxy can reach.
 
 **Key Features of Sidecars**
@@ -817,10 +816,56 @@ In our example if you observe GRAPH in KIALI Dashboard , observe the traffic has
 
 ![](images/kiali_review_all.png)
 
+
+
+**How to apply Traffic Rules**
+
+
+**Step 1:** Create a `VirtualService` and define the routing rule where you want to route traffic with. Sample code is shown below:
+
+``` yaml 
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: productpage
+spec:
+  hosts:
+  - productpage
+  http:
+  - route:
+    - destination:
+        host: productpage
+        subset: v1
+```
+Let's break down the key components of this configuration:
+
+**apiVersion:** Specifies the Istio API version that this configuration adheres to. In this case, it's networking.istio.io/v1alpha3, indicating that it's using the Istio networking API version 1alpha3.
+
+**kind:** Specifies the type of resource being defined. Here, it's a VirtualService. A VirtualService in Istio allows you to configure how traffic is routed to different versions of your services.
+
+**metadata:** Contains metadata about the VirtualService, including its name. In this case, the name is set to "productpage."
+
+**spec:** Defines the specifications for the VirtualService.
+
+**hosts:** Specifies the hosts to which this VirtualService applies. In this case, it's set to "productpage," meaning that this VirtualService is intended for the service with the hostname "productpage."
+
+**http:** Describes the HTTP routing rules for the specified hosts.
+
+**route:** Defines a set of routing rules.
+
+**destination**: Specifies the destination for the traffic.
+
+**host:** The host to which the traffic is routed. In this case, it's "productpage."
+
+**subset:** This is a way to perform traffic splitting based on subsets of a service. It suggests that the traffic should be directed to the subset named "v1" of the service "productpage."
+
+In summary, this Istio VirtualService configuration is instructing the service mesh to route HTTP traffic for the host "productpage" to the subset "v1" of the service with the same host name. This is useful for scenarios where you have multiple versions of a service, and you want to control how traffic is distributed among those versions.
+
 ### Scenario 1: Traffic shifting
 
-Let us make 100% of the traffic to version1 of reviews service. 
-To do this, we already have a yaml file present in the folder (From the istios folder, samples\bookinfo\networking\virtual-service-all-v1.yaml)
+Let us apply traffic shifting for `Bookinfo services` and make 100% of the traffic to version1 of reviews service. 
+
+we already have a yaml file present in the folder (From the istios folder, samples\bookinfo\networking\virtual-service-all-v1.yaml)
 
 ```bash +@Output
 $ k8s apply -f samples\bookinfo\networking\bookinfo-gateway.yaml
@@ -913,7 +958,56 @@ When a workload sends a request to another workload using mutual TLS authenticat
 3. The `client side Envoy` and the `server side Envoy` establish a `mutual TLS connection`, and Istio forwards the traffic from the client side Envoy to the server side Envoy.
 4. The server side Envoy authorizes the request. If authorized, it forwards the traffic to the backend service through local TCP connections.
 
+**How to enable mtls between services**
+
+**Step 1:** Create a destination-rule and add under traffic policy, tls mode `ISTIO_MUTUAL`. Sample code is shown below:
+
+```yaml
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: productpage
+spec:
+  host: productpage
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL
+  subsets:
+  - name: v1
+    labels:
+      version: v1
+      
+```
+
+Let's break down the key components of this configuration:
+
+**apiVersion:** Specifies the Istio API version that this configuration adheres to. In this case, it's networking.istio.io/v1alpha3, indicating the Istio networking API version 1alpha3.
+
+**kind:** Specifies the type of resource being defined. Here, it's a DestinationRule.
+
+**metadata:** Contains metadata about the DestinationRule, including its name. In this case, the name is set to "productpage."
+
+**spec:** Defines the specifications for the DestinationRule.
+
+**host:** Specifies the host (destination service) to which this rule applies. In this case, it's set to "productpage."
+
+**trafficPolicy:** Describes the traffic-related policies for the destination.
+
+**tls:** Describes the TLS (Transport Layer Security) settings for the traffic to this destination.
+
+**mode:** Specifies the TLS mode. In this case, it's set to ISTIO_MUTUAL. This means that mutual TLS authentication is enabled for the traffic to the "productpage" service. Mutual TLS requires both the client and the server to present certificates for authentication.
+subsets: Defines subsets for the destination service. Subsets are used to apply specific policies or direct traffic to specific versions or instances of a service.
+
+**name:** Specifies the name of the subset. In this case, it's "v1."
+
+**labels:** Specifies labels that identify the subset. The subset "v1" is associated with services that have the label "version: v1." This allows you to apply specific policies or routing rules to instances of the service that have this label.
+
+In summary, this DestinationRule configuration is specifying that for the "productpage" service, mutual TLS authentication (ISTIO_MUTUAL mode) should be enforced, and there is a subset named "v1" with a label identifying services with the version "v1." This provides a way to apply specific policies to the traffic destined for the "productpage" service, especially when there are multiple versions or instances of that service.
+
+
 ![](images/istio-authn.png)
+
+Let us apply and enforce mtls for `Bookinfo services`
 
 **i. Enforce mTLS**
 
