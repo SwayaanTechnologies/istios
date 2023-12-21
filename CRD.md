@@ -1,10 +1,8 @@
-# Custom Resource Definition - CRDs
+# Custom Resource Definition CRDs
 
 In Kubernetes, Custom Resource Definitions (CRDs) allow you to extend the Kubernetes API and define your own custom resources.
 
-
 Let's create a simple custom resoucre called `Person` with fields like `name` and `age` and `address`
-
 
 **Step 1**: Create the Custom Resource Definition (CRD)
 

@@ -1,3 +1,36 @@
+# Istio
+
+![](images/istios.png)
+
+# Table of contents 
+
+- [Service Mesh](#service-mesh)
+- [Istio](#istio-introduction)
+- [Istio Architecture](#istio-architecture)
+- [Envoy Proxy](#envoy-proxy)
+- [Install Istio on microk8s](#istio-on-microk8s)
+
+  - [Set Alias to microk8s kubectl command](#set-alias-to-microk8s-kubectl-command)
+  - [Setting up MetalLB LoadBalancer](#setting-up-metallb-loadbalancer)
+- [Deploy a sample microservice application](#deploy-a-sample-microservice-application)
+
+  - [Set up Ingress Gateway](#set-up-ingress-gateway) 
+  - [Access the Application Using External LoadBalancer](#access-the-application-using-external-loadbalancer)
+  - [Access the Application using NodePort](#access-the-application-using-nodeport)
+- [Monitoring and Data Visualisation](#monitoring-and-data-visualisation)
+- [Istio Traffic Management](#istio-traffic-management)
+
+  - [Sidecars](#sidecars)
+  - [Virtual services](#virtual-services)
+  - [Destination rules](#destination-rules)
+  - [Gateways](#gateways)
+  - [Service Entries](#service-entries)
+  - [Istio Traffic Management Demo](#traffic-management-demo)
+- [Istio Security](#istio-security)
+
+  - [Istio Security Demo](#istio-security-demo)
+- [References](#references)
+
 # Service Mesh 
 
 ![](images/servicemesh.png)
@@ -13,7 +46,7 @@ An application structured in a microservices architecture might comprise dozens 
 A service mesh enables developers to separate and manage service-to-service communications in a dedicated infrastructure layer. As the number of microservices involved with an application increases, so do the benefits of using a service mesh to manage and monitor them.
 
 
-# Istios
+# Istio Introduction
 
 ![](images/istios.png)
 Istio is started in `May 2017` which means `sail` in Greek and Developed in `Go` Language. <br>
@@ -76,7 +109,7 @@ Istio allows you to define and `enforce policies` at the mesh level. You can imp
 
 Istio simplifies the management of complex interactions between microservices. It ensures that communication is secure, reliable, observable, and controllable, even as the number of microservices and the complexity of your application grow. Istio provides these features while allowing developers to focus on building and deploying microservices without worrying about the intricacies of service-to-service communication.
 
-# Istios Architecture 
+# Istio Architecture 
 
 ![](images/service-mesh.svg)
 
@@ -109,7 +142,7 @@ Features Provided by Envoy as Sidecars
 - Fault injection
 - Rich metrics
 
-# Istios on microk8s
+# Istio on microk8s
 
 **Set up Microk8s on ubuntu**
 
@@ -326,7 +359,7 @@ $ k8s apply -f <(microk8s istioctl kube-inject -f ./samples/bookinfo/platform/ku
 
 ```bash +@Output
 $ k8s get all
-# Observation: Each pod has 2 container running, ie, istios injected a sidecar to each pod as a proxy container automatically
+# Observation: Each pod has 2 container running, ie, istio injected a sidecar to each pod as a proxy container automatically
 $ k8s describe pod <pod-name>
 $ k8s describe pod/productpage-v1-6fcdb87d75-5xbpn 
 # Observation: Check the container section 
@@ -468,6 +501,7 @@ $ echo "INGRESS_HOST=$INGRESS_HOST, INGRESS_PORT=$INGRESS_PORT"
 **Step 4:** Access the application using the IP and the Port outside the cluster
 
 **Curl on your ubuntu terminal**
+
 ```bash +@Output
 $ curl <INGRESS_HOST>:<INGRESS_PORT>/productpage
 $ curl 139.59.57.185:31049/productpage
@@ -480,7 +514,7 @@ Access the url , http://<INGRESS_HOST>:<INGRESS_PORT>/productpage
 
 # Monitoring and Data Visualisation 
 
-To add monitoring and visualization tools on istios, if you check the istios downloaded folder, we have samples/addons ( In my case, ~/istio/samples/addons) You can see the addons like prometheus, grafana, jaeger, kiali etc.. 
+To add monitoring and visualization tools on istio, if you check the istio downloaded folder, we have samples/addons ( In my case, ~/istio/samples/addons) You can see the addons like prometheus, grafana, jaeger, kiali etc.. 
 
 To add the required addons, just run, 
 
@@ -535,7 +569,7 @@ $ k8s edit svc kiali -n istio-system
 
 > NOTE: In further concepts, we use kiali dashboard to visualise
 
-# Istios Traffic Management
+# Istio Traffic Management
 
 ![](images/istios_traffic_mgt.png)
 
@@ -545,7 +579,7 @@ Istio’s traffic management model relies on the Envoy proxies that are deployed
 
 In order to direct traffic within your mesh, Istio needs to know where all your endpoints are, and which services they belong to. To populate its own service registry, Istio connects to a service discovery system. For example, if you’ve installed Istio on a Kubernetes cluster, then Istio automatically detects the services and endpoints in that cluster.
 
-You can also configure Istios traffic configuration to direct a particular percentage of traffic to a new version of a service as part of A/B testing, or apply a different load balancing policy to traffic for a particular subset of service instances.
+You can also configure istio traffic configuration to direct a particular percentage of traffic to a new version of a service as part of A/B testing, or apply a different load balancing policy to traffic for a particular subset of service instances.
 
 Like other Istio configuration, the API is specified using Kubernetes custom resource definitions (CRDs), which you can configure using YAML
 
@@ -865,7 +899,7 @@ In summary, this Istio VirtualService configuration is instructing the service m
 
 Let us apply traffic shifting for `Bookinfo services` and make 100% of the traffic to version1 of reviews service. 
 
-we already have a yaml file present in the folder (From the istios folder, samples\bookinfo\networking\virtual-service-all-v1.yaml)
+we already have a yaml file present in the folder (From the istio folder, samples\bookinfo\networking\virtual-service-all-v1.yaml)
 
 ```bash +@Output
 $ k8s apply -f samples\bookinfo\networking\bookinfo-gateway.yaml
@@ -930,7 +964,7 @@ $ k8s apply -f samples\bookinfo\networking\virtual-service-reviews-jason-v2-v3.y
 From the http://<host-ip>:<port-number>/productpage, click on sigin and login with user `jason` and password can be anything, and observe you are getting `v2` review page. Refresh several times and observe the output
 Similarly, try loggin in with different user and observe the difference 
 
-# Istios Security
+# Istio Security
 
 Istio provides several security features, including mutual TLS (mTLS) authentication, access control, and rate limiting
 
@@ -943,7 +977,7 @@ Defense in depth: integrate with existing security systems to provide multiple l
 Zero-trust network: build security solutions on distrusted networks
 
 
-## Istios Security Demo
+## Istio Security Demo
 
 **Prerequisites:** Ensure that the Bookinfo application is deployed, and you've enabled Istio sidecar, as mentioned in the previous steps.
 
@@ -1118,5 +1152,8 @@ spec:
 
 **Step 2: Verify that the rate limiting policy is applied to the "ratings" service, and you can observe the rate limits in action**
 
+# References 
+
+- https://istio.io/latest/docs/
 
 
